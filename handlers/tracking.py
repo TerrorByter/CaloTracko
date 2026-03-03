@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, ContextTypes
 
 from database import get_user, get_meals_for_date, get_meals_for_week, delete_meal
-from utils import format_progress_bar, format_meal_summary
+from utils import format_progress_bar, format_meal_summary, get_now_sgt, to_sgt
 
 
 async def today_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -19,7 +19,7 @@ async def today_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def _build_today_message(user_id: int):
     """Build today's summary text with a single 'Delete a meal' button."""
     user = await get_user(user_id)
-    today = datetime.utcnow()
+    today = get_now_sgt()
     meals = await get_meals_for_date(user_id, today)
 
     total_cal = sum(m["calories"] for m in meals)
@@ -36,7 +36,8 @@ async def _build_today_message(user_id: int):
         for i, meal in enumerate(meals, 1):
             log_ts = meal.get("logged_at")
             if log_ts:
-                time_str = log_ts.strftime("%H:%M") if hasattr(log_ts, "strftime") else str(log_ts)[11:16]
+                sgt_ts = to_sgt(log_ts)
+                time_str = sgt_ts.strftime("%H:%M")
             else:
                 time_str = ""
             msg += f"{i}. {meal['name']} — {meal['calories']} kcal"
@@ -75,7 +76,7 @@ async def show_delete_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await query.answer()
 
     user_id = update.effective_user.id
-    today = datetime.utcnow()
+    today = get_now_sgt()
     meals = await get_meals_for_date(user_id, today)
 
     if not meals:
@@ -127,7 +128,7 @@ async def week_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Show this week's calorie summary."""
     user_id = update.effective_user.id
     user = await get_user(user_id)
-    today = datetime.utcnow()
+    today = get_now_sgt()
     weekly = await get_meals_for_week(user_id, today)
 
     goal = user.get("daily_calorie_goal", 2000) if user else 2000
@@ -180,7 +181,7 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     # No args — show date picker with last 7 days
-    today = datetime.utcnow()
+    today = get_now_sgt()
     buttons = []
     row = []
     for i in range(1, 8):
@@ -227,7 +228,8 @@ async def _show_history_for_date(target, user_id: int, target_date: datetime, ed
         for i, meal in enumerate(meals, 1):
             log_ts = meal.get("logged_at")
             if log_ts:
-                time_str = log_ts.strftime("%H:%M") if hasattr(log_ts, "strftime") else str(log_ts)[11:16]
+                sgt_ts = to_sgt(log_ts)
+                time_str = sgt_ts.strftime("%H:%M")
             else:
                 time_str = ""
             msg += f"{i}. {meal['name']} — {meal['calories']} kcal"

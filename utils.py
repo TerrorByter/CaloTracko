@@ -1,4 +1,15 @@
-"""Utility functions for the calorie tracking bot."""
+from datetime import datetime, timedelta, timezone
+
+def get_now_sgt() -> datetime:
+    """Get current time in Singapore (UTC+8)."""
+    return datetime.now(timezone.utc) + timedelta(hours=8)
+
+def to_sgt(dt: datetime) -> datetime:
+    """Convert a UTC datetime to SGT."""
+    if not dt.tzinfo:
+        # Assume naive datetime is UTC
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone(timedelta(hours=8)))
 
 
 def calculate_calorie_goal(

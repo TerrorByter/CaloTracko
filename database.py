@@ -28,7 +28,8 @@ async def get_user(telegram_id: int) -> Optional[dict]:
 
 async def upsert_user(telegram_id: int, **fields) -> None:
     """Create or update a user profile."""
-    fields["updated_at"] = datetime.utcnow()
+    from datetime import timezone
+    fields["updated_at"] = datetime.now(timezone.utc)
     existing = await get_user(telegram_id)
 
     conn = await _get_conn()
@@ -79,10 +80,19 @@ async def log_meal(
         await conn.close()
 
 
-async def get_meals_for_date(user_id: int, date: datetime) -> list[dict]:
-    """Get all meals for a specific date (UTC)."""
-    start = date.replace(hour=0, minute=0, second=0, microsecond=0)
-    end = date.replace(hour=23, minute=59, second=59, microsecond=999999)
+async def get_meals_for_date(user_id: int, sgt_date: datetime) -> list[dict]:
+    """
+    Get all meals for a specific SGT date.
+    Maps the SGT day (00:00 to 23:59) to UTC boundaries for the database query.
+    """
+    from datetime import timezone
+    # 2026-03-03 00:00:00 SGT
+    sgt_start = sgt_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Convert SGT 00:00 to UTC (SGT = UTC+8, so UTC = SGT-8)
+    utc_start = sgt_start - timedelta(hours=8)
+    utc_start = utc_start.replace(tzinfo=timezone.utc)
+    
+    utc_end = utc_start + timedelta(days=1) - timedelta(microseconds=1)
 
     conn = await _get_conn()
     try:
@@ -90,18 +100,29 @@ async def get_meals_for_date(user_id: int, date: datetime) -> list[dict]:
             """SELECT * FROM meals
                WHERE user_id = $1 AND logged_at BETWEEN $2 AND $3
                ORDER BY logged_at""",
-            user_id, start, end,
+            user_id, utc_start, utc_end,
         )
         return [dict(r) for r in rows]
     finally:
         await conn.close()
 
 
-async def get_meals_for_week(user_id: int, end_date: datetime) -> dict[str, list[dict]]:
-    """Get meals grouped by date for the past 7 days."""
-    start_date = end_date - timedelta(days=6)
-    start = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    end = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+async def get_meals_for_week(user_id: int, sgt_end_date: datetime) -> dict[str, list[dict]]:
+    """Get meals grouped by date for the past 7 days (SGT)."""
+    from datetime import timezone
+    # sgt_end_date is today SGT. We want 7 days including today.
+    # Start of today SGT
+    sgt_today_start = sgt_end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Start of 7 days ago SGT
+    sgt_week_start = sgt_today_start - timedelta(days=6)
+    
+    # Convert SGT week start to UTC
+    utc_start = sgt_week_start - timedelta(hours=8)
+    utc_start = utc_start.replace(tzinfo=timezone.utc)
+    
+    # End of today SGT
+    utc_end = (sgt_today_start + timedelta(days=1)) - timedelta(hours=8) - timedelta(microseconds=1)
+    utc_end = utc_end.replace(tzinfo=timezone.utc)
 
     conn = await _get_conn()
     try:
@@ -109,20 +130,22 @@ async def get_meals_for_week(user_id: int, end_date: datetime) -> dict[str, list
             """SELECT * FROM meals
                WHERE user_id = $1 AND logged_at BETWEEN $2 AND $3
                ORDER BY logged_at""",
-            user_id, start, end,
+            user_id, utc_start, utc_end,
         )
     finally:
         await conn.close()
 
     result: dict[str, list[dict]] = {}
     for i in range(7):
-        day = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
+        day = (sgt_week_start + timedelta(days=i)).strftime("%Y-%m-%d")
         result[day] = []
 
     for row in rows:
         d = dict(row)
-        # logged_at is now a datetime object from asyncpg
-        day = d["logged_at"].strftime("%Y-%m-%d")
+        # Convert UTC logged_at to SGT for correct grouping
+        logged_at_utc = d["logged_at"].replace(tzinfo=timezone.utc)
+        logged_at_sgt = logged_at_utc + timedelta(hours=8)
+        day = logged_at_sgt.strftime("%Y-%m-%d")
         if day in result:
             result[day].append(d)
 
