@@ -21,18 +21,23 @@ IMPORTANT — Regional context (ALWAYS apply this):
 
 You MUST respond with valid JSON only, no markdown, no extra text. Use this exact format:
 {
-    "name": "Short name for the food/meal",
+    "name": "Short name for the overall meal",
     "description": "Brief description of what was identified",
     "calories": 350,
     "protein_g": 25.0,
     "carbs_g": 30.0,
-    "fat_g": 12.0
+    "fat_g": 12.0,
+    "items": [
+        {"name": "Item 1", "calories": 200, "protein_g": 15.0, "carbs_g": 20.0, "fat_g": 7.0},
+        {"name": "Item 2", "calories": 150, "protein_g": 10.0, "carbs_g": 10.0, "fat_g": 5.0}
+    ]
 }
 
 Guidelines:
 - Be as accurate as possible with calorie and macro estimates
 - If the portion size is unclear, assume a typical Singapore serving
-- For complex meals, sum up all components
+- For complex meals, sum up all components into the top-level totals
+- Include `items` ONLY when the meal has 2 or more clearly distinct food items (e.g. "chicken rice and teh o"). For a single dish, omit `items` or set it to an empty list.
 - All numeric values should be reasonable estimates
 - calories should be an integer
 - protein_g, carbs_g, fat_g should be floats rounded to 1 decimal place
@@ -92,6 +97,17 @@ def _parse_response(text: str) -> dict:
     if data.get("name") == "Invalid Request":
         raise ValueError("Invalid food description or harmful prompt detected.")
 
+    items_raw = data.get("items", [])
+    items = []
+    for item in (items_raw or []):
+        items.append({
+            "name": str(item.get("name", "Item")),
+            "calories": int(item.get("calories", 0)),
+            "protein_g": round(float(item.get("protein_g", 0)), 1),
+            "carbs_g": round(float(item.get("carbs_g", 0)), 1),
+            "fat_g": round(float(item.get("fat_g", 0)), 1),
+        })
+
     return {
         "name": str(data.get("name", "Unknown")),
         "description": str(data.get("description", "")),
@@ -99,6 +115,7 @@ def _parse_response(text: str) -> dict:
         "protein_g": round(float(data.get("protein_g", 0)), 1),
         "carbs_g": round(float(data.get("carbs_g", 0)), 1),
         "fat_g": round(float(data.get("fat_g", 0)), 1),
+        "items": items,
     }
 
 

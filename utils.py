@@ -83,22 +83,28 @@ def format_estimate_message(estimate: dict) -> str:
     protein = estimate.get("protein_g", 0)
     carbs = estimate.get("carbs_g", 0)
     fat = estimate.get("fat_g", 0)
+    items = estimate.get("items", [])
 
-    msg = (
-        f"🔍 *Calorie Estimate*\n\n"
-        f"*{name}*\n"
-    )
+    msg = f"🔍 *Calorie Estimate*\n\n*{name}*\n"
     if desc:
         msg += f"_{desc}_\n"
+
     msg += (
         f"\n"
-        f"🔥 *Calories:* {calories} kcal\n"
-        f"🥩 *Protein:* {protein}g\n"
-        f"🍞 *Carbs:* {carbs}g\n"
-        f"🧈 *Fat:* {fat}g\n"
-        f"\n"
-        f"What would you like to do?"
+        f"🔥 *Total: {calories} kcal*\n"
+        f"🥩 Protein: {protein}g  |  🍞 Carbs: {carbs}g  |  🧈 Fat: {fat}g\n"
     )
+
+    # Per-item breakdown (only when 2+ distinct items)
+    if items and len(items) >= 2:
+        msg += "\n*Breakdown:*\n"
+        for item in items:
+            msg += (
+                f"• {item['name']}: {item['calories']} kcal "
+                f"_(P: {item['protein_g']}g, C: {item['carbs_g']}g, F: {item['fat_g']}g)_\n"
+            )
+
+    msg += "\nWhat would you like to do?"
     return msg
 
 
