@@ -13,11 +13,9 @@ from telegram.ext import (
     filters,
 )
 
-from datetime import datetime
-
 from ai_service import estimate_calories_from_text, estimate_calories_from_image, refine_estimate
 from database import log_meal, save_meal, get_meals_for_date, get_user
-from utils import format_estimate_message, format_progress_bar, MENU_BUTTONS_REGEX
+from utils import format_estimate_message, format_progress_bar, MENU_BUTTONS_REGEX, get_now_sgt
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +141,7 @@ async def handle_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         # Fetch daily total
         user_id = update.effective_user.id
         user = await get_user(user_id)
-        today_meals = await get_meals_for_date(user_id, datetime.utcnow())
+        today_meals = await get_meals_for_date(user_id, get_now_sgt())
         total_cal = sum(m["calories"] for m in today_meals)
         goal = user.get("daily_calorie_goal", 2000) if user else 2000
         remaining = max(goal - total_cal, 0)
@@ -266,7 +264,7 @@ async def handle_save_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Fetch daily total
     user_id = update.effective_user.id
     user = await get_user(user_id)
-    today_meals = await get_meals_for_date(user_id, datetime.utcnow())
+    today_meals = await get_meals_for_date(user_id, get_now_sgt())
     total_cal = sum(m["calories"] for m in today_meals)
     goal = user.get("daily_calorie_goal", 2000) if user else 2000
     remaining = max(goal - total_cal, 0)
