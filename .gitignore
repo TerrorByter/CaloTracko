@@ -1,0 +1,41 @@
+# Secrets & environment
+.env
+.env.local
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# SQLite (local dev only, data lives in Supabase in production)
+*.db
+*.sqlite
+*.sqlite3
+
+# Vercel
+.vercel/
+
+# Bot runtime files
+bot.pid
+*.pid
+
+# Test files
+test_*.py
+list_models.py
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
