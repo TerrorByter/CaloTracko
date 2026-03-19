@@ -29,6 +29,10 @@ async def profile_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     """Start profile setup or show existing profile."""
     # Check if this was a direct "Update" button press from an old session
     query = update.callback_query
+    
+    # If this is /start, show a welcome message first if they are new
+    is_start = update.message and update.message.text and update.message.text.startswith("/start")
+    
     if query:
         await query.answer()
         logger.info(f"Direct profile entry from query: {query.data}")
@@ -55,9 +59,25 @@ async def profile_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             )
             return GENDER
 
-    user = await get_user(update.effective_user.id)
+    user_id = update.effective_user.id
+    user = await get_user(user_id)
 
     if user and user.get("age"):
+        if is_start:
+            from handlers.start import MENU_KEYBOARD
+            welcome = (
+                "👋 *Welcome back to CalorieBot!*\n\n"
+                "I'm ready to help you track your calories.\n\n"
+                "🚀 *Quick Tips:*\n"
+                "• Send a photo or description to log a meal\n"
+                "• Tap 📊 Today to check your progress\n"
+                "• Use 👤 Profile to view or update your stats"
+            )
+            await update.effective_message.reply_text(
+                welcome, parse_mode="Markdown", reply_markup=MENU_KEYBOARD
+            )
+            return ConversationHandler.END
+            
         # Show existing profile with option to re-do
         goal = user.get("daily_calorie_goal", "Not set")
         msg = (
@@ -82,8 +102,19 @@ async def profile_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         )
         return CONFIRM_GOAL
     else:
+        logger.info(f"Starting new profile setup for user {user_id}")
+        
+        prefix = ""
+        if is_start:
+            prefix = (
+                "👋 *Welcome to CalorieBot!*\n\n"
+                "I help you track your daily calorie intake using AI. "
+                "To get started, I need to ask a few questions to set up your profile.\n\n"
+            )
+            
         await update.effective_message.reply_text(
-            "👋 Let's set up your profile!\n\nWhat is your gender?",
+            f"{prefix}What is your gender?",
+            parse_mode="Markdown" if prefix else None,
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
@@ -459,6 +490,7 @@ def get_handler():
     return ConversationHandler(
         entry_points=[
             CommandHandler("profile", profile_start),
+            CommandHandler("start", profile_start),
             MessageHandler(filters.Regex("^👤 Profile$"), profile_start),
             CallbackQueryHandler(profile_start, pattern=r"^(profile_update|profile_keep)$"),
         ],
