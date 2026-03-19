@@ -77,12 +77,12 @@ async def profile_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
                 InlineKeyboardButton("❌ Keep", callback_data="profile_keep"),
             ]
         ]
-        await update.message.reply_text(
+        await update.effective_message.reply_text(
             msg, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return CONFIRM_GOAL
     else:
-        await update.message.reply_text(
+        await update.effective_message.reply_text(
             "👋 Let's set up your profile!\n\nWhat is your gender?",
             reply_markup=InlineKeyboardMarkup(
                 [

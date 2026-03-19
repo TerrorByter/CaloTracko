@@ -8,7 +8,8 @@ from config import DATABASE_URL
 
 
 async def _get_conn() -> asyncpg.Connection:
-    return await asyncpg.connect(DATABASE_URL)
+    # Disable statement cache for pgbouncer compatibility
+    return await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
 
 
 # ─── User CRUD ───────────────────────────────────────────────────────────────
