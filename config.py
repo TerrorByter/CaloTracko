@@ -24,6 +24,7 @@ WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "")
 API_KEY: str = _require("API_KEY")
 API_BASE_URL: str = _require("API_BASE_URL")
 MODEL_NAME: str = os.getenv("MODEL_NAME", "gpt-4o")
+VISION_MODEL_NAME: str = os.getenv("VISION_MODEL_NAME", MODEL_NAME)
 
 # Database (Supabase Postgres connection string)
 DATABASE_URL: str = _require("DATABASE_URL")
@@ -37,3 +38,6 @@ if _authorized_raw:
         raise ValueError("AUTHORIZED_TELEGRAM_IDS must be a comma-separated list of integers")
 else:
     AUTHORIZED_TELEGRAM_IDS = []
+
+# Whitelist toggle
+REQUIRE_AUTH: bool = os.getenv("REQUIRE_AUTH", "True").lower() == "true"

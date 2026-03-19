@@ -2,7 +2,7 @@ import base64
 import json
 import logging
 from openai import AsyncOpenAI
-from config import API_KEY, API_BASE_URL, MODEL_NAME
+from config import API_KEY, API_BASE_URL, MODEL_NAME, VISION_MODEL_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +166,7 @@ async def estimate_calories_from_image(image_bytes: bytes, caption: str = "") ->
     try:
         # GPT-4o is the default choice for vision
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model=VISION_MODEL_NAME,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {

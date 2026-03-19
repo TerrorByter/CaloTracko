@@ -7,8 +7,7 @@ empty the bot remains open to all users (useful for development).
 """
 
 from typing import Callable
-
-from config import AUTHORIZED_TELEGRAM_IDS
+from config import AUTHORIZED_TELEGRAM_IDS, REQUIRE_AUTH
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -16,8 +15,11 @@ from telegram.ext import ContextTypes
 async def is_authorized(telegram_id: int) -> bool:
     """Return True if `telegram_id` is allowed to use the bot.
 
-    An empty `AUTHORIZED_TELEGRAM_IDS` list means "allow all".
+    If `REQUIRE_AUTH` is False, the bot is public.
+    If `REQUIRE_AUTH` is True, an empty `AUTHORIZED_TELEGRAM_IDS` list means "allow all".
     """
+    if not REQUIRE_AUTH:
+        return True
     if not AUTHORIZED_TELEGRAM_IDS:
         return True
     return telegram_id in AUTHORIZED_TELEGRAM_IDS
