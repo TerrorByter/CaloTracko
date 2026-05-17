@@ -45,6 +45,20 @@ cp .env.example .env
 # Fill in your values in .env
 ```
 
+Here is a reference of the available environment variables:
+
+| Variable | Required | Description |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Yes | Your token from [@BotFather](https://t.me/BotFather) |
+| `API_KEY` | Yes | Your OpenAI-compatible API key (OpenAI, APIYI, etc.) |
+| `API_BASE_URL` | Yes | Endpoint base URL (e.g. `https://api.openai.com/v1`) |
+| `MODEL_NAME` | No | Chat model to use for text logic (default: `gpt-4o`) |
+| `VISION_MODEL_NAME` | No | Vision model to use for food photo analysis (default: `gpt-4o`) |
+| `DATABASE_URL` | Yes | Connection string for your Supabase Postgres database |
+| `REQUIRE_AUTH` | No | Toggle to restrict bot access (`True`/`False`, default: `True`) |
+| `AUTHORIZED_TELEGRAM_IDS` | No | Comma-separated list of Telegram User IDs allowed to use the bot if `REQUIRE_AUTH` is enabled |
+| `WEBHOOK_URL` | No | Your Vercel deployment URL (only needed for webhook mode) |
+
 ### 3. Set up Supabase
 1. Create a new Supabase project
 2. Open **SQL Editor** and run `schema.sql`
@@ -87,9 +101,9 @@ curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-app.vercel
 
 ## 🔒 Security
 
-- Bot restricted to authorised Telegram user IDs via `AUTHORIZED_TELEGRAM_IDS`
-- AI prompt injection defences in `ai_service.py`
-- All secrets managed via environment variables (never committed)
+- **Access Restriction Toggle:** Restrict access to designated users only. Set `REQUIRE_AUTH=True` and define allowed users in `AUTHORIZED_TELEGRAM_IDS`.
+- **AI Security Protocol:** Prompt-injection safeguards in `ai_service.py` to prevent users from bypassing calorie tracking instructions.
+- **Environment Management:** All sensitive keys, tokens, and database credentials are completely externalized (never committed).
 
 ## 📄 License
 
