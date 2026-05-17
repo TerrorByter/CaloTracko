@@ -1,28 +1,28 @@
-# 🍱 CaloTracko — Calorie Tracking Telegram Bot
+# CaloTracko — Calorie Tracking Telegram Bot
 
 A personal Telegram bot that estimates calories from food descriptions or photos using AI, tracks your daily and weekly intake, and helps you stay on top of your nutrition goals.
 
-## ✨ Features
+## Features
 
-- 📸 **Log meals by photo or text** — AI estimates calories and macros instantly
-- 📊 **Daily & weekly summaries** — track progress against your calorie goal
-- 💾 **Save favourite meals** — log recurring meals with one tap
-- 👤 **Personalised profile** — age, height, weight, activity level, and goal weight
-- 🎯 **Smart calorie goal** — calculated via Mifflin-St Jeor equation
-- 🔔 **Meal reminders** — configurable daily nudge if no meals logged
-- 🔐 **Authorised users only** — restrict access to specific Telegram IDs
+- **Log meals by photo or text** — AI estimates calories and macros instantly
+- **Daily & weekly summaries** — track progress against your calorie goal
+- **Save favourite meals** — log recurring meals with one tap
+- **Personalised profile** — age, height, weight, activity level, and goal weight
+- **Smart calorie goal** — calculated via Mifflin-St Jeor equation
+- **Meal reminders** — configurable daily nudge if no meals logged
+- **Authorised users only** — restrict access to specific Telegram IDs
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|---|---|
 | Bot framework | `python-telegram-bot` v20 |
 | Web server | FastAPI + Mangum |
 | Hosting | Vercel (serverless) |
 | Database | Supabase (PostgreSQL via `asyncpg`) |
 | AI | OpenAI-compatible API (vision + text) |
 
-## 🚀 Self-Hosting Guide
+## Self-Hosting Guide
 
 ### Prerequisites
 - Python 3.11+
@@ -78,7 +78,7 @@ Then register the webhook:
 curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-app.vercel.app/webhook"
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── api/
@@ -99,12 +99,12 @@ curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-app.vercel
 └── .env.example          # Environment variable template
 ```
 
-## 🔒 Security
+## Security
 
 - **Access Restriction Toggle:** Restrict access to designated users only. Set `REQUIRE_AUTH=True` and define allowed users in `AUTHORIZED_TELEGRAM_IDS`.
 - **AI Security Protocol:** Prompt-injection safeguards in `ai_service.py` to prevent users from bypassing calorie tracking instructions.
 - **Environment Management:** All sensitive keys, tokens, and database credentials are completely externalized (never committed).
 
-## 📄 License
+## License
 
 MIT
